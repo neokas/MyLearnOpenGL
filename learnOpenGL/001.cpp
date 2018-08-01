@@ -3,6 +3,7 @@
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height); //每次窗口大小被调整时,调整视口大小
+void processInput(GLFWwindow *window);
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -35,8 +36,18 @@ int main()
 	//渲染循环
 	while (!glfwWindowShouldClose(window))
 	{
-		glfwSwapBuffers(window); //交换颜色缓冲,它是一个储存着GLFW窗口每一个像素颜色值的大缓冲），它在这一迭代中被用来绘制，并且将会作为输出显示在屏幕上。
+		//输入
+		processInput(window);
+
+		//渲染指令
+		glClearColor(0.2f, 0.3f, 0.4f, 1.0f); //设置清屏的颜色
+		glClear(GL_COLOR_BUFFER_BIT); //清屏
+
+
+		//检查并调用事件，交换缓冲；
 		glfwPollEvents(); //检查有没有触发什么事件（比如键盘输入、鼠标移动等）、更新窗口状态，并调用对应的回调函数
+		glfwSwapBuffers(window); //交换颜色缓冲,它是一个储存着GLFW窗口每一个像素颜色值的大缓冲），它在这一迭代中被用来绘制，并且将会作为输出显示在屏幕上。
+	
 	}
 
 	glfwTerminate(); //释放资源 
@@ -47,4 +58,12 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	//设置Viewport(视口：渲染窗口的大小)
 	glViewport(0, 0, width, height); //前两个参数控制窗口左下角的位置，后两个参数控制窗口的宽度和高度。
+}
+
+void processInput(GLFWwindow *window)
+{
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	{
+		glfwSetWindowShouldClose(window, true);
+	}
 }
