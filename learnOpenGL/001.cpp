@@ -20,6 +20,12 @@ const char *fragmentShaderSource = "#version 330 core\n"
 	"{\n"
 	"   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
 	"}\n\0";
+const char *fragmentShaderSource2 = "#version 330 core\n"
+"out vec4 FragColor;\n"
+"void main()\n"
+"{\n"
+"   FragColor = vec4(1.0f, 0.5f, 0.8f, 1.0f);\n"
+"}\n\0";
 
 int main()
 {
@@ -61,25 +67,30 @@ int main()
 		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
 	}
 
-	//创建片段着色器
+	//创建片段着色器1
 	unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
 	glCompileShader(fragmentShader);
-	//获取错误信息
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
+	//创建片段着色器2
+	unsigned int fragmentShader2 = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader2, 1, &fragmentShaderSource2, NULL);
+	glCompileShader(fragmentShader2);
+
 
 	//着色器程序对象
 	unsigned int shaderProgram = glCreateProgram();
+	unsigned int shaderProgram2 = glCreateProgram();
 	glAttachShader(shaderProgram, vertexShader);   //连接顶点着色器
 	glAttachShader(shaderProgram, fragmentShader); //连接片段着色器
 	glLinkProgram(shaderProgram); //连接到程序
+
+	glAttachShader(shaderProgram2, vertexShader);   //连接顶点着色器
+	glAttachShader(shaderProgram2, fragmentShader2); //连接片段着色器
+	glLinkProgram(shaderProgram2); //连接到程序
+
 	glDeleteShader(vertexShader); //在连接后删除着色器对象
 	glDeleteShader(fragmentShader);
+	glDeleteShader(fragmentShader2);
 	//获取错误信息
 	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
 	if (!success) {
@@ -88,16 +99,15 @@ int main()
 	}
 	
 	//顶点
-	float vertices[] = {
-		0.5f, 0.5f, 0.0f,   // 右上角
-		0.5f, -0.5f, 0.0f,  // 右下角
-		-0.5f, -0.5f, 0.0f, // 左下角
-		-0.5f, 0.5f, 0.0f   // 左上角
+	float firstTriangle[] = {
+		-0.9f, -0.5f, 0.0f,  // left 
+		-0.0f, -0.5f, 0.0f,  // right
+		-0.45f, 0.5f, 0.0f,  // top 
 	};
-	//引索
-	unsigned int indices[] = {
-		0,1,3,  //第一个三角形
-		1,2,3   //第二个三角形
+	float secondTriangle[] = {
+		0.0f, -0.5f, 0.0f,  // left
+		0.9f, -0.5f, 0.0f,  // right
+		0.45f, 0.5f, 0.0f   // top 
 	};
 
 	//创建引索缓冲对象 EBO
@@ -105,19 +115,22 @@ int main()
 	glGenBuffers(1, &EBO);
 
 	//创建VBO VAO
-	unsigned int VBO,VAO;
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	glBindVertexArray(VAO); //绑定VAO
-	//复制顶点数组到顶点缓冲中供OpenGL使用
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	//复制引索数组到引索缓冲中供OpenGL使用
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-	//设置顶点属性指针
+	unsigned int VBOs[2], VAOs[2];
+	glGenVertexArrays(2, VAOs);
+	glGenBuffers(2, VBOs);
+
+	glBindVertexArray(VAOs[0]); //绑定VAO
+	glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);   //绑定缓冲VBO到GL_ARRAY_BUFFER上  顶点缓冲对象的缓冲类型是GL_ARRAY_BUFFER
+	glBufferData(GL_ARRAY_BUFFER, sizeof(firstTriangle), firstTriangle, GL_STATIC_DRAW); //复制顶点数据 到 缓冲内存中
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+
+	glBindVertexArray(VAOs[1]); //绑定VAO
+	glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);   //绑定缓冲VBO到GL_ARRAY_BUFFER上  顶点缓冲对象的缓冲类型是GL_ARRAY_BUFFER
+	glBufferData(GL_ARRAY_BUFFER, sizeof(secondTriangle), secondTriangle, GL_STATIC_DRAW); //复制顶点数据 到 缓冲内存中
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glEnableVertexAttribArray(0);
+
 
 	/*glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);*/
@@ -136,10 +149,15 @@ int main()
 
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //线框模式
 		glUseProgram(shaderProgram);
-		glBindVertexArray(VAO);
-		//glDrawArrays(GL_TRIANGLES, 0, 3);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		glBindVertexArray(0);
+		glBindVertexArray(VAOs[0]);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+
+		glUseProgram(shaderProgram2);
+		glBindVertexArray(VAOs[1]);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+
+		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,0);
+
 
 		//检查并调用事件，交换缓冲；
 		glfwPollEvents(); //检查有没有触发什么事件（比如键盘输入、鼠标移动等）、更新窗口状态，并调用对应的回调函数
@@ -148,8 +166,8 @@ int main()
 	}
 
 	//删除VAO VBO
-	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1, &VBO);
+	glDeleteVertexArrays(1, VAOs);
+	glDeleteBuffers(1, VBOs);
 
 
 	glfwTerminate(); //释放资源 
