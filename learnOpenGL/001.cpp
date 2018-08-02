@@ -87,26 +87,42 @@ int main()
 		std::cout << "ERROR::SHADER::PROGRAM::COMPILATION_FAILED\n" << infoLog << std::endl;
 	}
 	
-	//三角形顶点
+	//顶点
 	float vertices[] = {
-		-0.5f, -0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-		0.0f,  0.5f, 0.0f
+		0.5f, 0.5f, 0.0f,   // 右上角
+		0.5f, -0.5f, 0.0f,  // 右下角
+		-0.5f, -0.5f, 0.0f, // 左下角
+		-0.5f, 0.5f, 0.0f   // 左上角
 	};
+	//引索
+	unsigned int indices[] = {
+		0,1,3,  //第一个三角形
+		1,2,3   //第二个三角形
+	};
+
+	//创建引索缓冲对象 EBO
+	unsigned int EBO;
+	glGenBuffers(1, &EBO);
 
 	//创建VBO VAO
 	unsigned int VBO,VAO;
-	glGenBuffers(1, &VBO);
 	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
 	glBindVertexArray(VAO); //绑定VAO
-	//复制顶点数组到缓冲中供OpenGL使用
+	//复制顶点数组到顶点缓冲中供OpenGL使用
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	//复制引索数组到引索缓冲中供OpenGL使用
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 	//设置顶点属性指针
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	glBindVertexArray(0);
+	/*glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);*/
+
+
 
 	//渲染循环
 	while (!glfwWindowShouldClose(window))
@@ -118,15 +134,23 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.4f, 1.0f); //设置清屏的颜色
 		glClear(GL_COLOR_BUFFER_BIT); //清屏
 
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //线框模式
 		glUseProgram(shaderProgram);
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		//glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
 
 		//检查并调用事件，交换缓冲；
 		glfwPollEvents(); //检查有没有触发什么事件（比如键盘输入、鼠标移动等）、更新窗口状态，并调用对应的回调函数
 		glfwSwapBuffers(window); //交换颜色缓冲,它是一个储存着GLFW窗口每一个像素颜色值的大缓冲），它在这一迭代中被用来绘制，并且将会作为输出显示在屏幕上。
 	
 	}
+
+	//删除VAO VBO
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &VBO);
+
 
 	glfwTerminate(); //释放资源 
 	return 0;
