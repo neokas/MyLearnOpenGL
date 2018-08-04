@@ -19,10 +19,10 @@ const char *vertexShaderSource = "#version 330 core\n"
 const char *fragmentShaderSource = 
 	"#version 330 core\n"
 	"out vec4 FragColor;\n"
-	"in vec4 vertexColor;\n"
+	"uniform vec4 ourColor;\n"
 	"void main()\n"
 	"{\n"
-	"   FragColor = vertexColor;\n"
+	"   FragColor = ourColor;\n"
 	"}\n\0";
 const char *fragmentShaderSource2 = 
 	"#version 330 core\n"
@@ -104,6 +104,8 @@ int main()
 		std::cout << "ERROR::SHADER::PROGRAM::COMPILATION_FAILED\n" << infoLog << std::endl;
 	}
 	
+	
+
 	//顶点
 	float firstTriangle[] = {
 		-0.9f, -0.5f, 0.0f,  // left 
@@ -154,6 +156,14 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT); //清屏
 
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //线框模式
+		
+		//着色器中的uniform
+		glUseProgram(shaderProgram);
+		float timeValue = glfwGetTime();
+		float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
+		int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+		glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+
 		glUseProgram(shaderProgram);
 		glBindVertexArray(VAOs[0]);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
