@@ -11,18 +11,20 @@
 class Shader
 {
 public:
-	Shader(const GLchar *vertexPath, const GLchar *fragmentPath);
+	Shader(const GLchar* vertexPath, const GLchar* fragmentPath);
 
-	void Use();
+	void use();
 
-	void SetBool(const std::string &name, const bool &value) const;
-	void SetInt(const std::string &name, const int &value) const;
-	void SetFloat(const std::string &name, const float &value) const;
+	void setBool(const std::string &name, bool value) const;
+	void setInt(const std::string &name, int value) const;
+	void setFloat(const std::string &name, float value) const;
 private:
 	unsigned int ID;
+
+	void checkCompileErrors(unsigned int shader, std::string type);
 };
 
-Shader::Shader(const GLchar *vertexPath, const GLchar *fragmentPath)
+Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath)
 {
 	//1. 从文件中获取顶点/片段着色器
 	std::string vertexCode;
@@ -56,32 +58,20 @@ Shader::Shader(const GLchar *vertexPath, const GLchar *fragmentPath)
 
 	//2. 编译着色器
 	unsigned int vertex, fragment;
-	int success;
-	char infoLog[512];
 
 	//顶点着色器
 	vertex = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertex, 1, &vShaderCode, NULL);
 	glCompileShader(vertex);
 	//打印编译错误
-	glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(vertex, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
+	checkCompileErrors(vertex, "VERTEX");
 
 	//片段着色器
 	fragment = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragment, 1, &fShaderCode, NULL);
 	glCompileShader(fragment);
 	//打印编译错误
-	glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(fragment, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
+	checkCompileErrors(fragment, "FRAGMENT");
 
 	//着色器程序
 	ID = glCreateProgram();
@@ -89,37 +79,55 @@ Shader::Shader(const GLchar *vertexPath, const GLchar *fragmentPath)
 	glAttachShader(ID, fragment);
 	glLinkProgram(ID);
 	//打印连接错误
-	glGetProgramiv(ID, GL_LINK_STATUS, &success);
-	if (!success)
-	{
-		glGetProgramInfoLog(ID, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-	}
+	checkCompileErrors(ID, "PROGRAM");
 
 	//删除着色器
 	glDeleteShader(vertex);
 	glDeleteShader(fragment);
 }
 
-void Shader::Use()
+void Shader::use()
 {
 	glUseProgram(ID);
 }
 
-void Shader::SetBool(const std::string &name, const bool &value) const
+void Shader::setBool(const std::string &name, bool value) const
 {
 	glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
 }
 
-void Shader::SetInt(const std::string &name, const int &value) const
+void Shader::setInt(const std::string &name,int value) const
 {
 	glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
 }
 
-void Shader::SetFloat(const std::string &name, const float &value) const
-{
-	glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
+void Shader::setFloat(const std::string &name,float value) const
+{//注意这里是1f 最后一个参数是float
+	glUniform1f(glGetUniformLocation(ID, name.c_str()),value);
 }
 
+void Shader::checkCompileErrors(unsigned int shader, std::string type)
+{
+	int success;
+	char infoLog[1024];
+	if (type != "PROGRAM")
+	{
+		glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+		if (!success)
+		{
+			glGetShaderInfoLog(shader, 1024, NULL, infoLog);
+			std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+		}
+	}
+	else
+	{
+		glGetProgramiv(shader, GL_LINK_STATUS, &success);
+		if (!success)
+		{
+			glGetProgramInfoLog(shader, 1024, NULL, infoLog);
+			std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+		}
+	}
+}
 
 #endif

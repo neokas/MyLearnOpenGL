@@ -83,15 +83,12 @@ int main()
 
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //线框模式
 		
-		//着色器中的uniform
-		/*glUseProgram(shaderProgram2);
-		float timeValue = glfwGetTime();
-		float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
-		int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
-		glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);*/
 
-		myShader.Use();
+
+		myShader.use();
 		glBindVertexArray(VAO);
+		float offset = 0;
+		myShader.setFloat("xOffset", offset);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 
