@@ -2,29 +2,14 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
+#include "MyShader.h"
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height); //每次窗口大小被调整时,调整视口大小
 void processInput(GLFWwindow *window);
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-const char *vertexShaderSource = "#version 330 core\n"
-	"layout (location = 0) in vec3 aPos;\n"
-	"layout (location = 1) in vec3 aColor;\n"
-	"out vec3 ourColor;\n"
-	"void main()\n"
-	"{\n"
-	"   gl_Position = vec4(aPos, 1.0);\n"
-	"   ourColor = aColor;\n"
-	"}\0";
-const char *fragmentShaderSource = 
-	"#version 330 core\n"
-	"out vec4 FragColor;\n"
-	"in vec3 ourColor;\n"
-	"void main()\n"
-	"{\n"
-	"   FragColor = vec4(ourColor,1.0);\n"
-	"}\n\0";
 //const char *fragmentShaderSource2 = 
 //	"#version 330 core\n"
 //	"out vec4 FragColor;\n"
@@ -59,54 +44,6 @@ int main()
 		return -1;
 	}
 
-	//创建顶点着色器
-	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	//把这个着色器源码附加到着色器对象上，然后编译它
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL); //参数：（要编译的着色器对象，传递的源码字符串数量，顶点着色器源码，null)
-	glCompileShader(vertexShader);
-	//获取错误信息
-	int success;
-	char infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-
-	//创建片段着色器1
-	unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	glCompileShader(fragmentShader);
-	////创建片段着色器2
-	//unsigned int fragmentShader2 = glCreateShader(GL_FRAGMENT_SHADER);
-	//glShaderSource(fragmentShader2, 1, &fragmentShaderSource2, NULL);
-	//glCompileShader(fragmentShader2);
-
-
-	//着色器程序对象
-	unsigned int shaderProgram = glCreateProgram();
-	unsigned int shaderProgram2 = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);   //连接顶点着色器
-	glAttachShader(shaderProgram, fragmentShader); //连接片段着色器
-	glLinkProgram(shaderProgram); //连接到程序
-
-	//glAttachShader(shaderProgram2, vertexShader);   //连接顶点着色器
-	//glAttachShader(shaderProgram2, fragmentShader2); //连接片段着色器
-	//glLinkProgram(shaderProgram2); //连接到程序
-
-	glDeleteShader(vertexShader); //在连接后删除着色器对象
-	glDeleteShader(fragmentShader);
-	/*glDeleteShader(fragmentShader2);*/
-	//获取错误信息
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success) {
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::PROGRAM::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-	
-	
-
 	//顶点
 	float vertices[] = {
 		// positions         // colors
@@ -132,12 +69,7 @@ int main()
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 
-
-
-	/*glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);*/
-
-
+	Shader myShader("E:/桌面/learnopengl/Shaders/1.vs", "E:/桌面/learnopengl/Shaders/1.fs");
 
 	//渲染循环
 	while (!glfwWindowShouldClose(window))
@@ -158,7 +90,7 @@ int main()
 		int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
 		glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);*/
 
-		glUseProgram(shaderProgram);
+		myShader.Use();
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
