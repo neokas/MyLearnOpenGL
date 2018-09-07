@@ -122,11 +122,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="001.cpp" />
+    <ClCompile Include="001_Main.cpp" />
+    <ClCompile Include="002_For_stb_image.cpp" />
     <ClCompile Include="glad.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="E:\桌面\learnopengl\Includes\stb_image.h" />
     <ClInclude Include="MyShader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="E:\桌面\learnopengl\images\container.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="E:\桌面\learnopengl\Shaders\1.fs" />
+    <None Include="E:\桌面\learnopengl\Shaders\1.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
